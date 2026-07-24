@@ -17,6 +17,20 @@ const CONFIG = {
 };
 
 /* ══════════════════════════════════════════════════════
+   DOSSIERS PRÉ-CHARGÉS (disponibles sans localStorage)
+══════════════════════════════════════════════════════ */
+const PRELOADED_DOSSIERS = {
+  'AT-2026-00147': {
+    id: 'AT-2026-00147',
+    client: 'Kleinert Kerstin',
+    fileName: 'AT-2026-00147.pdf',
+    fileUrl: 'public/AT-2026-00147.pdf',
+    date: new Date().toISOString(),
+    isPreloaded: true
+  }
+};
+
+/* ══════════════════════════════════════════════════════
    COUCHE STOCKAGE
    Structure localStorage :
    { [DOSSIER_ID]: { id, client, fileName, fileData (base64), date } }
@@ -35,7 +49,13 @@ function saveDossiers(data) {
 
 /** Récupère un dossier par son ID (insensible à la casse). */
 function getDossier(id) {
-  return getDossiers()[id.trim().toUpperCase()] || null;
+  const normalizedId = id.trim().toUpperCase();
+  // Cherche d'abord dans les dossiers pré-chargés
+  if (PRELOADED_DOSSIERS[normalizedId]) {
+    return PRELOADED_DOSSIERS[normalizedId];
+  }
+  // Sinon cherche dans localStorage
+  return getDossiers()[normalizedId] || null;
 }
 
 /** Ajoute ou écrase un dossier. */
@@ -220,11 +240,22 @@ function handleSearch() {
   });
 }
 
-/** Téléchargement du PDF depuis le base64 stocké. */
+/** Téléchargement du PDF depuis le base64 stocké ou depuis un fichier. */
 document.getElementById('btn-download').addEventListener('click', () => {
   const d = getDossier(elInput.value.trim().toUpperCase());
-  if (!d || !d.fileData) return;
+  if (!d) return;
 
+  // Si c'est un dossier pré-chargé avec une URL de fichier
+  if (d.isPreloaded && d.fileUrl) {
+    const a = document.createElement('a');
+    a.href = d.fileUrl;
+    a.download = d.fileName;
+    a.click();
+    return;
+  }
+
+  // Sinon, téléchargement depuis base64 (localStorage)
+  if (!d.fileData) return;
   const bytes = atob(d.fileData);
   const ab    = new ArrayBuffer(bytes.length);
   const ia    = new Uint8Array(ab);

@@ -24,7 +24,7 @@ const PRELOADED_DOSSIERS = {
     id: 'AT-2026-00147',
     client: 'Kleinert Kerstin',
     fileName: 'AT-2026-00147.pdf',
-    fileUrl: 'public/AT-2026-00147.pdf',
+    fileUrl: 'AT-2026-00147.pdf',
     date: new Date().toISOString(),
     isPreloaded: true
   }

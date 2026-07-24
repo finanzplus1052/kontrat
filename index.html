@@ -216,7 +216,17 @@
           Gespeicherte Akten
           <span class="badge" id="badge-count">0</span>
         </div>
+        <div style="display:flex;gap:10px;margin-bottom:14px;">
+          <button class="btn btn-primary" id="btn-export" style="flex:1;font-size:.85rem;padding:8px 16px;">
+            📤 Daten exportieren
+          </button>
+          <button class="btn btn-primary" id="btn-import" style="flex:1;font-size:.85rem;padding:8px 16px;">
+            📥 Daten importieren
+          </button>
+          <input type="file" id="import-file" accept=".json" style="display:none;" />
+        </div>
         <div id="msg-delete" class="msg"></div>
+        <div id="msg-import" class="msg"></div>
         <div class="table-wrap">
           <table>
             <thead>

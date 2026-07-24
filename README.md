@@ -15,6 +15,7 @@ Ein sicheres Portal zur Einsicht und zum Download von Kreditverträgen.
 - 📤 Unbegrenzte PDF-Upload-Größe
 - 📊 Aktenverwaltung (Hinzufügen/Löschen)
 - 💼 Verwaltungskonsole
+- 📥📤 **Export/Import-Funktion** - Teilen Sie Akten zwischen verschiedenen Computern
 
 ## 🚀 Installation
 
@@ -60,6 +61,28 @@ finanzplus-austria/
 3. Laden Sie neue Akten hoch
 4. Verwalten Sie bestehende Akten
 
+### 📤 Akten mit Kunden teilen (Export/Import)
+
+**Problem**: LocalStorage speichert Daten nur lokal. Kunden auf anderen Computern können Ihre Akten nicht sehen.
+
+**Lösung**: Export/Import-Funktion
+
+#### Als Berater (Daten exportieren):
+1. Melden Sie sich im Beraterbereich an
+2. Klicken Sie auf **"📤 Daten exportieren"**
+3. Eine JSON-Datei wird heruntergeladen (z.B. `finanzplus-akten-2026-07-24.json`)
+4. Senden Sie diese Datei an Ihre Kunden (per E-Mail, Cloud, etc.)
+
+#### Als Kunde (Daten importieren):
+1. Öffnen Sie das Portal auf Ihrem Computer
+2. Klicken Sie auf "Beraterbereich" und melden Sie sich an
+3. Klicken Sie auf **"📥 Daten importieren"**
+4. Wählen Sie die JSON-Datei aus, die Sie vom Berater erhalten haben
+5. Die Akten werden importiert und sind nun verfügbar
+6. Melden Sie sich ab und suchen Sie nach Ihrer Aktennummer im Kundenportal
+
+**Hinweis**: Der Import fügt neue Akten hinzu und aktualisiert bestehende. Ihre lokalen Daten werden nicht gelöscht.
+
 ## 🔒 Sicherheit
 
 - ⚠️ **Wichtig**: Ändern Sie das Admin-Passwort in `src/app.js` (Zeile 12) vor der Produktionsbereitstellung
@@ -100,4 +123,4 @@ Entwickelt mit ❤️ für Finanzplus Austria
 
 ---
 
-**Hinweis**: Dieses System verwendet LocalStorage zur Speicherung von Daten. Für Produktionsumgebungen wird eine serverseitige Lösung empfohlen.
+**Hinweis**: Dieses System verwendet LocalStorage zur Speicherung von Daten. Die Export/Import-Funktion ermöglicht das Teilen von Akten zwischen verschiedenen Computern. Für Produktionsumgebungen mit vielen Benutzern wird eine serverseitige Lösung (z.B. Firebase, Supabase) empfohlen.

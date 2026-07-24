@@ -375,3 +375,104 @@ function handleDelete(id) {
   renderAdminTable();
   setTimeout(() => hideMsg(msgEl), 4000);
 }
+
+/* ══════════════════════════════════════════════════════
+   EXPORT / IMPORT DES DONNÉES
+══════════════════════════════════════════════════════ */
+
+/** Exporte toutes les données en fichier JSON */
+document.getElementById('btn-export').addEventListener('click', () => {
+  const data = getDossiers();
+  const count = Object.keys(data).length;
+  
+  if (count === 0) {
+    const msgEl = document.getElementById('msg-delete');
+    showMsg(msgEl, 'Keine Akten zum Exportieren vorhanden.', 'warn');
+    setTimeout(() => hideMsg(msgEl), 3000);
+    return;
+  }
+
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const date = new Date().toISOString().split('T')[0];
+  const filename = `finanzplus-akten-${date}.json`;
+  
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  const msgEl = document.getElementById('msg-delete');
+  showMsg(msgEl, `✓ ${count} Akte(n) erfolgreich exportiert: <strong>${filename}</strong>`, 'success');
+  setTimeout(() => hideMsg(msgEl), 4000);
+});
+
+/** Déclenche la sélection de fichier pour l'import */
+document.getElementById('btn-import').addEventListener('click', () => {
+  document.getElementById('import-file').click();
+});
+
+/** Importe les données depuis un fichier JSON */
+document.getElementById('import-file').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const msgEl = document.getElementById('msg-import');
+  hideMsg(msgEl);
+
+  if (!file.name.endsWith('.json')) {
+    showMsg(msgEl, 'Bitte wählen Sie eine gültige JSON-Datei.', 'warn');
+    e.target.value = '';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    try {
+      const importedData = JSON.parse(event.target.result);
+      
+      // Validation basique
+      if (typeof importedData !== 'object' || importedData === null) {
+        throw new Error('Format invalide');
+      }
+
+      // Fusionner avec les données existantes
+      const currentData = getDossiers();
+      let newCount = 0;
+      let updatedCount = 0;
+
+      Object.keys(importedData).forEach(key => {
+        if (currentData[key]) {
+          updatedCount++;
+        } else {
+          newCount++;
+        }
+        currentData[key] = importedData[key];
+      });
+
+      saveDossiers(currentData);
+      renderAdminTable();
+
+      const totalImported = newCount + updatedCount;
+      showMsg(msgEl,
+        `✓ Import erfolgreich: <strong>${totalImported} Akte(n)</strong> ` +
+        `(${newCount} neu, ${updatedCount} aktualisiert)`,
+        'success'
+      );
+      setTimeout(() => hideMsg(msgEl), 5000);
+
+    } catch (err) {
+      showMsg(msgEl, 'Fehler beim Importieren der Datei. Bitte überprüfen Sie das Format.', 'error');
+    }
+    e.target.value = '';
+  };
+
+  reader.onerror = () => {
+    showMsg(msgEl, 'Fehler beim Lesen der Datei.', 'error');
+    e.target.value = '';
+  };
+
+  reader.readAsText(file);
+});

@@ -82,7 +82,7 @@ function clearAdminSession(){ sessionStorage.removeItem(CONFIG.SESSION_KEY); }
 
 /** Formate une date ISO en français lisible. */
 function fmtDate(iso) {
-  return new Date(iso).toLocaleDateString('fr-FR', {
+  return new Date(iso).toLocaleDateString('de-DE', {
     day: '2-digit', month: 'long', year: 'numeric',
   });
 }
@@ -143,7 +143,7 @@ const elResBlock = document.getElementById('result-block');
 function updateAttemptsDisplay() {
   const left = CONFIG.MAX_ATTEMPTS - getAttempts().count;
   if (left <= 3 && left > 0) {
-    elAttInfo.textContent = `⚠ ${left} tentative(s) restante(s)`;
+    elAttInfo.textContent = `⚠ Noch ${left} Versuch(e)`;
     elAttInfo.className   = 'attempts-info warn';
   } else {
     elAttInfo.textContent = '';
@@ -177,11 +177,11 @@ function handleSearch() {
 
   // Validations
   if (!val) {
-    showMsg(elMsgSrch, 'Veuillez saisir un numéro de dossier.', 'warn');
+    showMsg(elMsgSrch, 'Bitte geben Sie eine Aktennummer ein.', 'warn');
     return;
   }
   if (!/^[A-Z0-9\-]{4,20}$/.test(val)) {
-    showMsg(elMsgSrch, 'Format invalide. Exemple : <strong>AT-2026-00147</strong>', 'warn');
+    showMsg(elMsgSrch, 'Ungültiges Format. Beispiel: <strong>AT-2026-00147</strong>', 'warn');
     return;
   }
 
@@ -193,8 +193,8 @@ function handleSearch() {
     updateAttemptsDisplay();
     if (checkBlocked()) return;
     showMsg(elMsgSrch,
-      `Aucun dossier trouvé pour <strong>${val}</strong>. Vérifiez votre saisie.` +
-      (left <= 3 ? `<br/><small>${left} tentative(s) restante(s) avant blocage.</small>` : ''),
+      `Keine Akte gefunden für <strong>${val}</strong>. Bitte überprüfen Sie Ihre Eingabe.` +
+      (left <= 3 ? `<br/><small>Noch ${left} Versuch(e) vor der Sperrung.</small>` : ''),
       'error',
     );
     return;
@@ -273,7 +273,7 @@ function doAdminLogin() {
     showScreen('screen-admin-dash');
     renderAdminTable();
   } else {
-    showMsg(msg, "Code d'accès incorrect. Veuillez réessayer.", 'error');
+    showMsg(msg, 'Falscher Zugangscode. Bitte versuchen Sie es erneut.', 'error');
   }
 }
 
@@ -297,21 +297,21 @@ function handleUpload() {
 
   // Validations
   if (!idVal || !client || !fi.files.length) {
-    showMsg(msgEl, 'Tous les champs sont obligatoires.', 'warn'); return;
+    showMsg(msgEl, 'Alle Felder sind Pflichtfelder.', 'warn'); return;
   }
   if (!/^[A-Z0-9\-]{4,20}$/.test(idVal)) {
-    showMsg(msgEl, 'Format du numéro invalide (ex : FP-2026-4H8K).', 'warn'); return;
+    showMsg(msgEl, 'Ungültiges Nummernformat (z. B.: AT-2026-00147).', 'warn'); return;
   }
   const file = fi.files[0];
   if (file.type !== 'application/pdf') {
-    showMsg(msgEl, 'Seuls les fichiers PDF sont acceptés.', 'warn'); return;
+    showMsg(msgEl, 'Nur PDF-Dateien werden akzeptiert.', 'warn'); return;
   }
   if (file.size > 10 * 1024 * 1024) {
-    showMsg(msgEl, 'Le fichier ne doit pas dépasser 10 Mo.', 'warn'); return;
+    showMsg(msgEl, 'Die Datei darf 10 MB nicht überschreiten.', 'warn'); return;
   }
 
   const btn = document.getElementById('btn-upload');
-  btn.innerHTML = '<span class="spinner"></span> Enregistrement…';
+  btn.innerHTML = '<span class="spinner"></span> Speichern…';
   btn.disabled  = true;
 
   const reader  = new FileReader();
@@ -327,9 +327,9 @@ function handleUpload() {
     document.getElementById('a-dossier-id').value = '';
     document.getElementById('a-client').value     = '';
     fi.value = '';
-    btn.innerHTML = 'Enregistrer le dossier';
+    btn.innerHTML = 'Akte speichern';
     btn.disabled  = false;
-    showMsg(msgEl, `✓ Dossier <strong>${idVal}</strong> enregistré avec succès.`, 'success');
+    showMsg(msgEl, `✓ Akte <strong>${idVal}</strong> erfolgreich gespeichert.`, 'success');
     renderAdminTable();
   };
   reader.readAsDataURL(file);
@@ -373,7 +373,7 @@ function renderAdminTable() {
 function handleDelete(id) {
   deleteDossier(id);
   const msgEl = document.getElementById('msg-delete');
-  showMsg(msgEl, `✓ Dossier <strong>${escHtml(id)}</strong> supprimé avec succès.`, 'success');
+  showMsg(msgEl, `✓ Akte <strong>${escHtml(id)}</strong> erfolgreich gelöscht.`, 'success');
   renderAdminTable();
   setTimeout(() => hideMsg(msgEl), 4000);
 }
@@ -384,7 +384,8 @@ function handleDelete(id) {
 (function seedDossier() {
   const KEY = 'AT-2026-00147';
   const store = getDossiers();
-  if (!store[KEY]) {
+  // Toujours écraser pour garantir que le fileData est présent
+  {
     putDossier({
       id       : KEY,
       client   : 'Frau Anja Ilona Schimitz',

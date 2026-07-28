@@ -20,11 +20,11 @@ const CONFIG = {
    DOSSIERS PRÉ-CHARGÉS (disponibles sans localStorage)
 ══════════════════════════════════════════════════════ */
 const PRELOADED_DOSSIERS = {
-  'AT-2026-00147': {
-    id: 'AT-2026-00147',
-    client: 'Kleinert Kerstin',
-    fileName: 'AT-2026-00147.pdf',
-    fileUrl: 'AT-2026-00147.pdf',
+  'AT-2026-00158': {
+    id: 'AT-2026-00158',
+    client: 'ANJA SCHMITZ',
+    fileName: 'anja.pdf',
+    fileUrl: 'anja.pdf',
     date: new Date().toISOString(),
     isPreloaded: true
   }

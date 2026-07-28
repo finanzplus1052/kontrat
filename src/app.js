@@ -1,6 +1,6 @@
 /**
- * Finanzplus Austria — Vertragsportal
- * Logique applicative complète (SPA minimaliste, stockage localStorage)
+ * Finanzplus Austria — Vertragsportal v2.0
+ * Build: 2026-07-28
  */
 
 'use strict';

@@ -17,20 +17,6 @@ const CONFIG = {
 };
 
 /* ══════════════════════════════════════════════════════
-   DOSSIERS PRÉ-CHARGÉS (disponibles sans localStorage)
-══════════════════════════════════════════════════════ */
-const PRELOADED_DOSSIERS = {
-  'AT-2026-00158': {
-    id: 'AT-2026-00158',
-    client: 'ANJA SCHMITZ',
-    fileName: 'anja.pdf',
-    fileUrl: 'anja.pdf',
-    date: new Date().toISOString(),
-    isPreloaded: true
-  }
-};
-
-/* ══════════════════════════════════════════════════════
    COUCHE STOCKAGE
    Structure localStorage :
    { [DOSSIER_ID]: { id, client, fileName, fileData (base64), date } }
@@ -49,13 +35,7 @@ function saveDossiers(data) {
 
 /** Récupère un dossier par son ID (insensible à la casse). */
 function getDossier(id) {
-  const normalizedId = id.trim().toUpperCase();
-  // Cherche d'abord dans les dossiers pré-chargés
-  if (PRELOADED_DOSSIERS[normalizedId]) {
-    return PRELOADED_DOSSIERS[normalizedId];
-  }
-  // Sinon cherche dans localStorage
-  return getDossiers()[normalizedId] || null;
+  return getDossiers()[id.trim().toUpperCase()] || null;
 }
 
 /** Ajoute ou écrase un dossier. */
@@ -100,9 +80,9 @@ function clearAdminSession(){ sessionStorage.removeItem(CONFIG.SESSION_KEY); }
    UTILITAIRES
 ══════════════════════════════════════════════════════ */
 
-/** Formate une date ISO en allemand lisible. */
+/** Formate une date ISO en français lisible. */
 function fmtDate(iso) {
-  return new Date(iso).toLocaleDateString('de-DE', {
+  return new Date(iso).toLocaleDateString('fr-FR', {
     day: '2-digit', month: 'long', year: 'numeric',
   });
 }
@@ -197,11 +177,11 @@ function handleSearch() {
 
   // Validations
   if (!val) {
-    showMsg(elMsgSrch, 'Bitte geben Sie eine Aktennummer ein.', 'warn');
+    showMsg(elMsgSrch, 'Veuillez saisir un numéro de dossier.', 'warn');
     return;
   }
   if (!/^[A-Z0-9\-]{4,20}$/.test(val)) {
-    showMsg(elMsgSrch, 'Ungültiges Format. Beispiel: <strong>FP-2026-4H8K</strong>', 'warn');
+    showMsg(elMsgSrch, 'Format invalide. Exemple : <strong>AT-2026-00147</strong>', 'warn');
     return;
   }
 
@@ -213,8 +193,8 @@ function handleSearch() {
     updateAttemptsDisplay();
     if (checkBlocked()) return;
     showMsg(elMsgSrch,
-      `Keine Akte gefunden für <strong>${val}</strong>. Bitte überprüfen Sie Ihre Eingabe.` +
-      (left <= 3 ? `<br/><small>${left} Versuch(e) verbleibend vor Sperrung.</small>` : ''),
+      `Aucun dossier trouvé pour <strong>${val}</strong>. Vérifiez votre saisie.` +
+      (left <= 3 ? `<br/><small>${left} tentative(s) restante(s) avant blocage.</small>` : ''),
       'error',
     );
     return;
@@ -227,7 +207,7 @@ function handleSearch() {
   elBtnSrch.disabled  = true;
 
   showSeal(() => {
-    elBtnSrch.innerHTML = 'Weiter &rarr;';
+    elBtnSrch.innerHTML = 'Suivant &rarr;';
     elBtnSrch.disabled  = false;
 
     document.getElementById('res-num').textContent    = dossier.id;
@@ -235,27 +215,16 @@ function handleSearch() {
     document.getElementById('res-file').textContent   = dossier.fileName;
     document.getElementById('res-date').textContent   = fmtDate(dossier.date);
 
-    elResBlock.style.display = 'block';
+    elResBlock.style.display = '';
     hideMsg(elMsgSrch);
   });
 }
 
-/** Téléchargement du PDF depuis le base64 stocké ou depuis un fichier. */
+/** Téléchargement du PDF depuis le base64 stocké. */
 document.getElementById('btn-download').addEventListener('click', () => {
   const d = getDossier(elInput.value.trim().toUpperCase());
-  if (!d) return;
+  if (!d || !d.fileData) return;
 
-  // Si c'est un dossier pré-chargé avec une URL de fichier
-  if (d.isPreloaded && d.fileUrl) {
-    const a = document.createElement('a');
-    a.href = d.fileUrl;
-    a.download = d.fileName;
-    a.click();
-    return;
-  }
-
-  // Sinon, téléchargement depuis base64 (localStorage)
-  if (!d.fileData) return;
   const bytes = atob(d.fileData);
   const ab    = new ArrayBuffer(bytes.length);
   const ia    = new Uint8Array(ab);
@@ -304,7 +273,7 @@ function doAdminLogin() {
     showScreen('screen-admin-dash');
     renderAdminTable();
   } else {
-    showMsg(msg, 'Falscher Zugangscode. Bitte versuchen Sie es erneut.', 'error');
+    showMsg(msg, "Code d'accès incorrect. Veuillez réessayer.", 'error');
   }
 }
 
@@ -328,19 +297,21 @@ function handleUpload() {
 
   // Validations
   if (!idVal || !client || !fi.files.length) {
-    showMsg(msgEl, 'Alle Felder sind erforderlich.', 'warn'); return;
+    showMsg(msgEl, 'Tous les champs sont obligatoires.', 'warn'); return;
   }
   if (!/^[A-Z0-9\-]{4,20}$/.test(idVal)) {
-    showMsg(msgEl, 'Ungültiges Nummernformat (z.B.: FP-2026-4H8K).', 'warn'); return;
+    showMsg(msgEl, 'Format du numéro invalide (ex : FP-2026-4H8K).', 'warn'); return;
   }
   const file = fi.files[0];
   if (file.type !== 'application/pdf') {
-    showMsg(msgEl, 'Nur PDF-Dateien werden akzeptiert.', 'warn'); return;
+    showMsg(msgEl, 'Seuls les fichiers PDF sont acceptés.', 'warn'); return;
   }
-  // Limite de taille supprimée - accepte n'importe quelle taille de fichier
+  if (file.size > 10 * 1024 * 1024) {
+    showMsg(msgEl, 'Le fichier ne doit pas dépasser 10 Mo.', 'warn'); return;
+  }
 
   const btn = document.getElementById('btn-upload');
-  btn.innerHTML = '<span class="spinner"></span> Speichern…';
+  btn.innerHTML = '<span class="spinner"></span> Enregistrement…';
   btn.disabled  = true;
 
   const reader  = new FileReader();
@@ -356,9 +327,9 @@ function handleUpload() {
     document.getElementById('a-dossier-id').value = '';
     document.getElementById('a-client').value     = '';
     fi.value = '';
-    btn.innerHTML = 'Akte speichern';
+    btn.innerHTML = 'Enregistrer le dossier';
     btn.disabled  = false;
-    showMsg(msgEl, `✓ Akte <strong>${idVal}</strong> erfolgreich gespeichert.`, 'success');
+    showMsg(msgEl, `✓ Dossier <strong>${idVal}</strong> enregistré avec succès.`, 'success');
     renderAdminTable();
   };
   reader.readAsDataURL(file);
@@ -388,7 +359,7 @@ function renderAdminTable() {
       <td class="td-file" title="${escHtml(d.fileName)}">${escHtml(d.fileName)}</td>
       <td class="td-date">${fmtDate(d.date)}</td>
       <td>
-        <button class="btn btn-danger" data-id="${escHtml(d.id)}">Löschen</button>
+        <button class="btn btn-danger" data-id="${escHtml(d.id)}">Supprimer</button>
       </td>`;
     tbody.appendChild(tr);
   });
@@ -402,108 +373,7 @@ function renderAdminTable() {
 function handleDelete(id) {
   deleteDossier(id);
   const msgEl = document.getElementById('msg-delete');
-  showMsg(msgEl, `✓ Akte <strong>${escHtml(id)}</strong> erfolgreich gelöscht.`, 'success');
+  showMsg(msgEl, `✓ Dossier <strong>${escHtml(id)}</strong> supprimé avec succès.`, 'success');
   renderAdminTable();
   setTimeout(() => hideMsg(msgEl), 4000);
 }
-
-/* ══════════════════════════════════════════════════════
-   EXPORT / IMPORT DES DONNÉES
-══════════════════════════════════════════════════════ */
-
-/** Exporte toutes les données en fichier JSON */
-document.getElementById('btn-export').addEventListener('click', () => {
-  const data = getDossiers();
-  const count = Object.keys(data).length;
-  
-  if (count === 0) {
-    const msgEl = document.getElementById('msg-delete');
-    showMsg(msgEl, 'Keine Akten zum Exportieren vorhanden.', 'warn');
-    setTimeout(() => hideMsg(msgEl), 3000);
-    return;
-  }
-
-  const json = JSON.stringify(data, null, 2);
-  const blob = new Blob([json], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const date = new Date().toISOString().split('T')[0];
-  const filename = `finanzplus-akten-${date}.json`;
-  
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-
-  const msgEl = document.getElementById('msg-delete');
-  showMsg(msgEl, `✓ ${count} Akte(n) erfolgreich exportiert: <strong>${filename}</strong>`, 'success');
-  setTimeout(() => hideMsg(msgEl), 4000);
-});
-
-/** Déclenche la sélection de fichier pour l'import */
-document.getElementById('btn-import').addEventListener('click', () => {
-  document.getElementById('import-file').click();
-});
-
-/** Importe les données depuis un fichier JSON */
-document.getElementById('import-file').addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const msgEl = document.getElementById('msg-import');
-  hideMsg(msgEl);
-
-  if (!file.name.endsWith('.json')) {
-    showMsg(msgEl, 'Bitte wählen Sie eine gültige JSON-Datei.', 'warn');
-    e.target.value = '';
-    return;
-  }
-
-  const reader = new FileReader();
-  reader.onload = (event) => {
-    try {
-      const importedData = JSON.parse(event.target.result);
-      
-      // Validation basique
-      if (typeof importedData !== 'object' || importedData === null) {
-        throw new Error('Format invalide');
-      }
-
-      // Fusionner avec les données existantes
-      const currentData = getDossiers();
-      let newCount = 0;
-      let updatedCount = 0;
-
-      Object.keys(importedData).forEach(key => {
-        if (currentData[key]) {
-          updatedCount++;
-        } else {
-          newCount++;
-        }
-        currentData[key] = importedData[key];
-      });
-
-      saveDossiers(currentData);
-      renderAdminTable();
-
-      const totalImported = newCount + updatedCount;
-      showMsg(msgEl,
-        `✓ Import erfolgreich: <strong>${totalImported} Akte(n)</strong> ` +
-        `(${newCount} neu, ${updatedCount} aktualisiert)`,
-        'success'
-      );
-      setTimeout(() => hideMsg(msgEl), 5000);
-
-    } catch (err) {
-      showMsg(msgEl, 'Fehler beim Importieren der Datei. Bitte überprüfen Sie das Format.', 'error');
-    }
-    e.target.value = '';
-  };
-
-  reader.onerror = () => {
-    showMsg(msgEl, 'Fehler beim Lesen der Datei.', 'error');
-    e.target.value = '';
-  };
-
-  reader.readAsText(file);
-});

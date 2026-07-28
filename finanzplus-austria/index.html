@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="de">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Finanzplus Austria — Portail Contrats</title>
+  <title>Finanzplus Austria — Vertragsportal</title>
   <link rel="stylesheet" href="src/style.css" />
 </head>
 <body>
 
   <!-- ══════════════════════════════════════════
-       SCEAU D'AUTHENTIFICATION (overlay animé)
+       AUTHENTIFIZIERUNGSSIEGEL (animiertes Overlay)
   ══════════════════════════════════════════ -->
   <div id="seal-overlay">
     <svg class="seal-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
@@ -23,22 +23,22 @@
         <textPath href="#topArc" startOffset="10%">FINANZPLUS AUSTRIA</textPath>
       </text>
       <text font-family="Georgia,serif" font-size="10" fill="rgba(169,129,74,.65)" letter-spacing="2">
-        <textPath href="#botArc" startOffset="12%">DOCUMENT AUTHENTIFIÉ</textPath>
+        <textPath href="#botArc" startOffset="12%">DOKUMENT AUTHENTIFIZIERT</textPath>
       </text>
       <text x="100" y="110" text-anchor="middle" font-family="Georgia,serif"
             font-size="30" fill="#A9814A" font-weight="700">FP</text>
     </svg>
-    <div class="seal-text">Dossier vérifié et authentifié</div>
+    <div class="seal-text">Akte geprüft und authentifiziert</div>
   </div>
 
   <!-- ══════════════════════════════════════════
-       ÉCRAN 1 — PAGE D'ACCUEIL CLIENT
+       BILDSCHIRM 1 — KUNDENPORTAL
   ══════════════════════════════════════════ -->
   <div id="screen-home" class="screen active">
 
     <aside class="sidebar">
       <div class="sidebar-logo">
-        <!-- Icône balance -->
+        <!-- Waage-Icon -->
         <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
           <rect x="18" y="4"  width="4" height="32" rx="2"/>
           <rect x="4"  y="6"  width="32" height="2"  rx="1"/>
@@ -51,16 +51,16 @@
       </div>
       <div class="sidebar-content">
         <h1>Finanzplus Austria</h1>
-        <div class="sidebar-sub">Portail Contrats</div>
+        <div class="sidebar-sub">Vertragsportal</div>
         <div class="sidebar-divider"></div>
         <div class="sidebar-tagline">
-          « Chaque engagement mérite<br/>clarté, sécurité et confiance. »
+          « Jede Verpflichtung verdient<br/>Klarheit, Sicherheit und Vertrauen. »
         </div>
         <div class="sidebar-tagline2">
-          Portail sécurisé de consultation<br/>
-          et téléchargement de contrats de prêt.<br/><br/>
-          Vos documents sont accessibles<br/>
-          uniquement via votre numéro de dossier.
+          Sicheres Portal zur Einsicht<br/>
+          und zum Download von Darlehensverträgen.<br/><br/>
+          Ihre Dokumente sind ausschließlich<br/>
+          über Ihre Aktennummer zugänglich.
         </div>
       </div>
     </aside>
@@ -68,26 +68,26 @@
     <main class="main-panel">
       <div class="card">
 
-        <!-- VUE : Formulaire de recherche -->
+        <!-- ANSICHT: Suchformular -->
         <div id="view-search">
-          <h2 class="card-title">Consulter votre dossier</h2>
+          <h2 class="card-title">Ihre Akte einsehen</h2>
           <p class="card-desc">
-            Saisissez votre numéro de dossier pour accéder à votre contrat.<br/>
-            Ce numéro vous a été communiqué par votre conseiller.
+            Geben Sie Ihre Aktennummer ein, um auf Ihren Vertrag zuzugreifen.<br/>
+            Diese Nummer wurde Ihnen von Ihrem Berater mitgeteilt.
           </p>
           <div class="form-group">
-            <label for="dossierId">Numéro de dossier</label>
+            <label for="dossierId">Aktennummer</label>
             <input type="text" id="dossierId"
-                   placeholder="ex : FP-2026-4H8K"
+                   placeholder="z. B. : DV-2024-00031"
                    maxlength="20"
                    autocomplete="off"
                    spellcheck="false" />
           </div>
-          <button class="btn btn-primary" id="btn-search">Suivant &rarr;</button>
+          <button class="btn btn-primary" id="btn-search">Weiter &rarr;</button>
           <div id="msg-search" class="msg"></div>
           <div id="attempts-info" class="attempts-info"></div>
 
-          <!-- Résultat dossier (caché par défaut) -->
+          <!-- Aktenergebnis (standardmäßig ausgeblendet) -->
           <div id="result-block">
             <div class="divider"></div>
             <div class="dossier-card">
@@ -95,44 +95,44 @@
                 <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor">
                   <path d="M8 1 10.47 5.53 16 6.34 12 10.24 12.94 15.74 8 13.12 3.06 15.74 4 10.24 0 6.34 5.53 5.53Z"/>
                 </svg>
-                Dossier validé
+                Akte bestätigt
               </div>
-              <div class="dossier-row"><span>Numéro de dossier</span><span class="mono" id="res-num">—</span></div>
-              <div class="dossier-row"><span>Client / Société</span><span id="res-client">—</span></div>
-              <div class="dossier-row"><span>Fichier</span><span id="res-file">—</span></div>
-              <div class="dossier-row"><span>Date de dépôt</span><span id="res-date">—</span></div>
+              <div class="dossier-row"><span>Aktennummer</span><span class="mono" id="res-num">—</span></div>
+              <div class="dossier-row"><span>Kunde / Gesellschaft</span><span id="res-client">—</span></div>
+              <div class="dossier-row"><span>Datei</span><span id="res-file">—</span></div>
+              <div class="dossier-row"><span>Einreichungsdatum</span><span id="res-date">—</span></div>
               <button class="btn btn-gold" id="btn-download">
-                ⬇&nbsp; Télécharger le contrat en PDF
+                ⬇&nbsp; Vertrag als PDF herunterladen
               </button>
             </div>
             <button class="btn btn-ghost" id="btn-another">
-              ↺ Consulter un autre dossier
+              ↺ Eine andere Akte einsehen
             </button>
           </div>
         </div>
 
-        <!-- VUE : Bloqué (trop de tentatives) -->
+        <!-- ANSICHT: Gesperrt (zu viele Versuche) -->
         <div id="view-blocked" style="display:none">
-          <h2 class="card-title card-title--danger">Accès temporairement suspendu</h2>
+          <h2 class="card-title card-title--danger">Zugang vorübergehend gesperrt</h2>
           <p class="card-desc" style="margin-top:10px">
-            Vous avez effectué trop de tentatives incorrectes. Pour des raisons
-            de sécurité, la consultation est suspendue.
+            Sie haben zu viele fehlgeschlagene Versuche unternommen. Aus Sicherheitsgründen
+            ist die Einsicht gesperrt.
           </p>
           <div class="msg msg-error show">
-            Veuillez contacter votre conseiller Finanzplus Austria.<br/>
-            <strong>+43 1 234 56 78 &mdash; contact@finanzplus.at</strong>
+            Bitte wenden Sie sich an Ihren Finanzplus Austria-Berater.<br/>
+            <strong>+43 681 10535900 &mdash; kontakt_finanzplusaustria@proton.me</strong>
           </div>
         </div>
 
       </div><!-- /card -->
     </main>
 
-    <!-- Lien discret vers l'espace conseiller -->
-    <button class="admin-link" id="admin-link">espace conseiller</button>
+    <!-- Diskreter Link zum Beraterbereich -->
+    <button class="admin-link" id="admin-link">Beraterbereich</button>
   </div>
 
   <!-- ══════════════════════════════════════════
-       ÉCRAN 2 — CONNEXION ADMIN
+       BILDSCHIRM 2 — ADMIN-ANMELDUNG
   ══════════════════════════════════════════ -->
   <div id="screen-admin-login" class="screen">
     <div class="card card--narrow">
@@ -142,40 +142,40 @@
             <path d="M12 2a4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4 4 4 0 0 1 4-4m0 10c4.42 0 8 1.79 8 4v2H4v-2c0-2.21 3.58-4 8-4z"/>
           </svg>
         </div>
-        <h2 class="card-title" style="text-align:center">Espace Conseiller</h2>
+        <h2 class="card-title" style="text-align:center">Beraterbereich</h2>
         <p class="card-desc" style="text-align:center;margin-bottom:0">
-          Accès réservé aux collaborateurs Finanzplus Austria.
+          Zugang nur für Mitarbeiter von Finanzplus Austria.
         </p>
       </div>
       <div class="form-group">
-        <label for="admin-pwd">Code d'accès</label>
+        <label for="admin-pwd">Zugangscode</label>
         <input type="password" id="admin-pwd"
                placeholder="••••••••"
                autocomplete="current-password" />
       </div>
-      <button class="btn btn-primary" id="btn-admin-login">Se connecter</button>
+      <button class="btn btn-primary" id="btn-admin-login">Anmelden</button>
       <div id="msg-admin-login" class="msg"></div>
       <button class="btn btn-ghost" id="btn-back-home" style="display:block;margin-top:14px">
-        ← Retour au portail client
+        ← Zurück zum Kundenportal
       </button>
     </div>
   </div>
 
   <!-- ══════════════════════════════════════════
-       ÉCRAN 3 — DASHBOARD ADMIN
+       BILDSCHIRM 3 — ADMIN-DASHBOARD
   ══════════════════════════════════════════ -->
   <div id="screen-admin-dash" class="screen">
     <div class="admin-topbar">
       <div>
         <div class="admin-topbar-title">Finanzplus Austria</div>
-        <div class="admin-topbar-sub">Console d'administration — Gestion des dossiers</div>
+        <div class="admin-topbar-sub">Verwaltungskonsole — Aktenverwaltung</div>
       </div>
-      <button class="btn-logout" id="btn-logout">Déconnexion</button>
+      <button class="btn-logout" id="btn-logout">Abmelden</button>
     </div>
 
     <div class="admin-grid">
 
-      <!-- Panneau : Dépôt -->
+      <!-- Panel: Einreichen -->
       <div class="panel">
         <div class="panel-title">
           <div class="panel-icon">
@@ -183,29 +183,29 @@
               <path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/>
             </svg>
           </div>
-          Déposer un dossier
+          Akte einreichen
         </div>
         <div class="form-group">
-          <label for="a-dossier-id">Numéro de dossier</label>
+          <label for="a-dossier-id">Aktennummer</label>
           <input type="text" id="a-dossier-id"
-                 placeholder="FP-2026-XXXX"
+                 placeholder="AT-2026-00147"
                  maxlength="20"
                  autocomplete="off" />
         </div>
         <div class="form-group">
-          <label for="a-client">Client / Société</label>
+          <label for="a-client">Kunde / Gesellschaft</label>
           <input type="text" id="a-client"
-                 placeholder="Nom complet ou raison sociale" />
+                 placeholder="Vollständiger Name oder Firmenname" />
         </div>
         <div class="form-group">
-          <label for="a-file">Fichier PDF du contrat</label>
+          <label for="a-file">PDF-Vertragsdatei</label>
           <input type="file" id="a-file" accept=".pdf" />
         </div>
-        <button class="btn btn-gold" id="btn-upload">Enregistrer le dossier</button>
+        <button class="btn btn-gold" id="btn-upload">Akte speichern</button>
         <div id="msg-upload" class="msg"></div>
       </div>
 
-      <!-- Panneau : Liste dossiers -->
+      <!-- Panel: Aktenliste -->
       <div class="panel">
         <div class="panel-title">
           <div class="panel-icon">
@@ -213,7 +213,7 @@
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
             </svg>
           </div>
-          Dossiers enregistrés
+          Gespeicherte Akten
           <span class="badge" id="badge-count">0</span>
         </div>
         <div id="msg-delete" class="msg"></div>
@@ -221,17 +221,17 @@
           <table>
             <thead>
               <tr>
-                <th>N° Dossier</th>
-                <th>Client</th>
-                <th>Fichier</th>
-                <th>Date</th>
-                <th>Action</th>
+                <th>Aktennr.</th>
+                <th>Kunde</th>
+                <th>Datei</th>
+                <th>Datum</th>
+                <th>Aktion</th>
               </tr>
             </thead>
             <tbody id="admin-table-body"></tbody>
           </table>
           <div id="empty-state" class="empty-state" style="display:none">
-            Aucun dossier enregistré pour le moment.
+            Noch keine Akten gespeichert.
           </div>
         </div>
       </div>

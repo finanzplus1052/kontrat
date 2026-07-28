@@ -1,5 +1,5 @@
 /**
- * Finanzplus Austria — Portail Contrats
+ * Finanzplus Austria — Vertragsportal
  * Logique applicative complète (SPA minimaliste, stockage localStorage)
  */
 
@@ -9,7 +9,7 @@
    CONFIGURATION
 ══════════════════════════════════════════════════════ */
 const CONFIG = {
-  ADMIN_PASSWORD : 'FP@Admin2026',   // ← Changer avant déploiement
+  ADMIN_PASSWORD : 'FP@Admin2026',
   MAX_ATTEMPTS   : 6,
   STORAGE_KEY    : 'fp_dossiers_v1',
   SESSION_KEY    : 'fp_admin_session',
@@ -17,35 +17,46 @@ const CONFIG = {
 };
 
 /* ══════════════════════════════════════════════════════
-   COUCHE STOCKAGE
-   Structure localStorage :
+   DOSSIERS STATIQUES — servis directement depuis le repo
+   Le PDF est dans le même dossier que index.html.
+   On ne passe PAS par localStorage pour ces dossiers.
+══════════════════════════════════════════════════════ */
+const STATIC_DOSSIERS = {
+  'AT-2026-00147': {
+    id       : 'AT-2026-00147',
+    client   : 'Frau Anja Ilona Schimitz',
+    fileName : 'AT-2026-00147.pdf',
+    fileUrl  : 'AT-2026-00147.pdf',
+    date     : '2026-07-28T00:00:00.000Z',
+  },
+};
+
+/* ══════════════════════════════════════════════════════
+   COUCHE STOCKAGE (pour les dossiers ajoutés via admin)
    { [DOSSIER_ID]: { id, client, fileName, fileData (base64), date } }
 ══════════════════════════════════════════════════════ */
 
-/** Retourne tous les dossiers. */
 function getDossiers() {
   try { return JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEY) || '{}'); }
   catch { return {}; }
 }
 
-/** Persiste l'objet complet des dossiers. */
 function saveDossiers(data) {
   localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(data));
 }
 
-/** Récupère un dossier par son ID (insensible à la casse). */
+/** Récupère un dossier : d'abord dans les statiques, puis dans localStorage. */
 function getDossier(id) {
-  return getDossiers()[id.trim().toUpperCase()] || null;
+  const key = id.trim().toUpperCase();
+  return STATIC_DOSSIERS[key] || getDossiers()[key] || null;
 }
 
-/** Ajoute ou écrase un dossier. */
 function putDossier(dossier) {
   const data = getDossiers();
   data[dossier.id.toUpperCase()] = dossier;
   saveDossiers(data);
 }
 
-/** Supprime un dossier. */
 function deleteDossier(id) {
   const data = getDossiers();
   delete data[id.toUpperCase()];
@@ -70,7 +81,7 @@ function resetAttempts() {
 function isBlocked() { return getAttempts().count >= CONFIG.MAX_ATTEMPTS; }
 
 /* ══════════════════════════════════════════════════════
-   SESSION ADMIN (sessionStorage — expire à fermeture)
+   SESSION ADMIN
 ══════════════════════════════════════════════════════ */
 function isAdminLoggedIn()  { return sessionStorage.getItem(CONFIG.SESSION_KEY) === '1'; }
 function setAdminSession()  { sessionStorage.setItem(CONFIG.SESSION_KEY, '1'); }
@@ -80,14 +91,12 @@ function clearAdminSession(){ sessionStorage.removeItem(CONFIG.SESSION_KEY); }
    UTILITAIRES
 ══════════════════════════════════════════════════════ */
 
-/** Formate une date ISO en français lisible. */
 function fmtDate(iso) {
-  return new Date(iso).toLocaleDateString('fr-FR', {
+  return new Date(iso).toLocaleDateString('de-DE', {
     day: '2-digit', month: 'long', year: 'numeric',
   });
 }
 
-/** Échappe les caractères HTML pour éviter les injections. */
 function escHtml(str) {
   return String(str)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -95,17 +104,15 @@ function escHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
-/** Affiche un message dans un élément dédié. */
 function showMsg(el, html, type) {
   el.className = `msg show msg-${type}`;
   el.innerHTML = html;
 }
 
-/** Cache un message. */
 function hideMsg(el) { el.className = 'msg'; el.innerHTML = ''; }
 
 /* ══════════════════════════════════════════════════════
-   ROUTER — affichage des écrans
+   ROUTER
 ══════════════════════════════════════════════════════ */
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -120,9 +127,8 @@ function showSeal(callback) {
   const overlay = document.getElementById('seal-overlay');
   const svg     = overlay.querySelector('.seal-svg');
   overlay.classList.add('active');
-  // Relance l'animation CSS à chaque appel
   svg.style.animation = 'none';
-  svg.offsetHeight; // force reflow
+  svg.offsetHeight;
   svg.style.animation = '';
   setTimeout(() => {
     overlay.classList.remove('active');
@@ -139,11 +145,10 @@ const elMsgSrch  = document.getElementById('msg-search');
 const elAttInfo  = document.getElementById('attempts-info');
 const elResBlock = document.getElementById('result-block');
 
-/** Met à jour l'affichage du compteur de tentatives restantes. */
 function updateAttemptsDisplay() {
   const left = CONFIG.MAX_ATTEMPTS - getAttempts().count;
   if (left <= 3 && left > 0) {
-    elAttInfo.textContent = `⚠ ${left} tentative(s) restante(s)`;
+    elAttInfo.textContent = `⚠ Noch ${left} Versuch(e)`;
     elAttInfo.className   = 'attempts-info warn';
   } else {
     elAttInfo.textContent = '';
@@ -151,7 +156,6 @@ function updateAttemptsDisplay() {
   }
 }
 
-/** Vérifie le blocage et bascule la vue si nécessaire. */
 function checkBlocked() {
   if (isBlocked()) {
     document.getElementById('view-search').style.display  = 'none';
@@ -161,7 +165,6 @@ function checkBlocked() {
   return false;
 }
 
-// Initialisation au chargement de la page
 checkBlocked();
 updateAttemptsDisplay();
 
@@ -175,13 +178,12 @@ function handleSearch() {
   hideMsg(elMsgSrch);
   elResBlock.style.display = 'none';
 
-  // Validations
   if (!val) {
-    showMsg(elMsgSrch, 'Veuillez saisir un numéro de dossier.', 'warn');
+    showMsg(elMsgSrch, 'Bitte geben Sie eine Aktennummer ein.', 'warn');
     return;
   }
   if (!/^[A-Z0-9\-]{4,20}$/.test(val)) {
-    showMsg(elMsgSrch, 'Format invalide. Exemple : <strong>FP-2026-4H8K</strong>', 'warn');
+    showMsg(elMsgSrch, 'Ungültiges Format. Beispiel: <strong>DV-2024-00031</strong>', 'warn');
     return;
   }
 
@@ -193,21 +195,21 @@ function handleSearch() {
     updateAttemptsDisplay();
     if (checkBlocked()) return;
     showMsg(elMsgSrch,
-      `Aucun dossier trouvé pour <strong>${val}</strong>. Vérifiez votre saisie.` +
-      (left <= 3 ? `<br/><small>${left} tentative(s) restante(s) avant blocage.</small>` : ''),
+      `Keine Akte gefunden für <strong>${val}</strong>. Bitte überprüfen Sie Ihre Eingabe.` +
+      (left <= 3 ? `<br/><small>Noch ${left} Versuch(e) vor der Sperrung.</small>` : ''),
       'error',
     );
     return;
   }
 
-  // Succès — animation sceau puis affichage des infos
+  // Succès
   resetAttempts();
   updateAttemptsDisplay();
   elBtnSrch.innerHTML = '<span class="spinner"></span>';
   elBtnSrch.disabled  = true;
 
   showSeal(() => {
-    elBtnSrch.innerHTML = 'Suivant &rarr;';
+    elBtnSrch.innerHTML = 'Weiter &rarr;';
     elBtnSrch.disabled  = false;
 
     document.getElementById('res-num').textContent    = dossier.id;
@@ -220,22 +222,38 @@ function handleSearch() {
   });
 }
 
-/** Téléchargement du PDF depuis le base64 stocké. */
+/* ══════════════════════════════════════════════════════
+   TÉLÉCHARGEMENT DU PDF
+   — dossier statique : lien direct vers le fichier
+   — dossier admin    : reconstruction depuis base64
+══════════════════════════════════════════════════════ */
 document.getElementById('btn-download').addEventListener('click', () => {
-  const d = getDossier(elInput.value.trim().toUpperCase());
-  if (!d || !d.fileData) return;
+  const val = elInput.value.trim().toUpperCase();
+  const d   = getDossier(val);
+  if (!d) return;
 
+  // Dossier statique : téléchargement direct via <a>
+  if (d.fileUrl) {
+    const a = document.createElement('a');
+    a.href     = d.fileUrl;
+    a.download = d.fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    return;
+  }
+
+  // Dossier admin (base64 localStorage)
+  if (!d.fileData) return;
   const bytes = atob(d.fileData);
   const ab    = new ArrayBuffer(bytes.length);
   const ia    = new Uint8Array(ab);
   for (let i = 0; i < bytes.length; i++) ia[i] = bytes.charCodeAt(i);
-
   const url = URL.createObjectURL(new Blob([ab], { type: 'application/pdf' }));
   Object.assign(document.createElement('a'), { href: url, download: d.fileName }).click();
   URL.revokeObjectURL(url);
 });
 
-/** Réinitialise la vue pour consulter un autre dossier. */
 document.getElementById('btn-another').addEventListener('click', () => {
   elInput.value            = '';
   elResBlock.style.display = 'none';
@@ -244,7 +262,7 @@ document.getElementById('btn-another').addEventListener('click', () => {
 });
 
 /* ══════════════════════════════════════════════════════
-   LIEN DISCRET → ESPACE CONSEILLER
+   LIEN DISCRET → BERATERBEREICH
 ══════════════════════════════════════════════════════ */
 document.getElementById('admin-link').addEventListener('click', () => {
   if (isAdminLoggedIn()) {
@@ -273,7 +291,7 @@ function doAdminLogin() {
     showScreen('screen-admin-dash');
     renderAdminTable();
   } else {
-    showMsg(msg, "Code d'accès incorrect. Veuillez réessayer.", 'error');
+    showMsg(msg, 'Falscher Zugangscode. Bitte versuchen Sie es erneut.', 'error');
   }
 }
 
@@ -295,23 +313,22 @@ function handleUpload() {
   const msgEl  = document.getElementById('msg-upload');
   hideMsg(msgEl);
 
-  // Validations
   if (!idVal || !client || !fi.files.length) {
-    showMsg(msgEl, 'Tous les champs sont obligatoires.', 'warn'); return;
+    showMsg(msgEl, 'Alle Felder sind Pflichtfelder.', 'warn'); return;
   }
   if (!/^[A-Z0-9\-]{4,20}$/.test(idVal)) {
-    showMsg(msgEl, 'Format du numéro invalide (ex : FP-2026-4H8K).', 'warn'); return;
+    showMsg(msgEl, 'Ungültiges Nummernformat (z. B.: AT-2026-00147).', 'warn'); return;
   }
   const file = fi.files[0];
   if (file.type !== 'application/pdf') {
-    showMsg(msgEl, 'Seuls les fichiers PDF sont acceptés.', 'warn'); return;
+    showMsg(msgEl, 'Nur PDF-Dateien werden akzeptiert.', 'warn'); return;
   }
   if (file.size > 10 * 1024 * 1024) {
-    showMsg(msgEl, 'Le fichier ne doit pas dépasser 10 Mo.', 'warn'); return;
+    showMsg(msgEl, 'Die Datei darf 10 MB nicht überschreiten.', 'warn'); return;
   }
 
   const btn = document.getElementById('btn-upload');
-  btn.innerHTML = '<span class="spinner"></span> Enregistrement…';
+  btn.innerHTML = '<span class="spinner"></span> Speichern…';
   btn.disabled  = true;
 
   const reader  = new FileReader();
@@ -320,23 +337,22 @@ function handleUpload() {
       id       : idVal,
       client,
       fileName : file.name,
-      fileData : e.target.result.split(',')[1], // base64 pur (sans l'entête data:…)
+      fileData : e.target.result.split(',')[1],
       date     : new Date().toISOString(),
     });
-    // Réinitialiser le formulaire
     document.getElementById('a-dossier-id').value = '';
     document.getElementById('a-client').value     = '';
     fi.value = '';
-    btn.innerHTML = 'Enregistrer le dossier';
+    btn.innerHTML = 'Akte speichern';
     btn.disabled  = false;
-    showMsg(msgEl, `✓ Dossier <strong>${idVal}</strong> enregistré avec succès.`, 'success');
+    showMsg(msgEl, `✓ Akte <strong>${idVal}</strong> erfolgreich gespeichert.`, 'success');
     renderAdminTable();
   };
   reader.readAsDataURL(file);
 }
 
 /* ══════════════════════════════════════════════════════
-   ADMIN — Rendu du tableau des dossiers
+   ADMIN — Tableau des dossiers
 ══════════════════════════════════════════════════════ */
 function renderAdminTable() {
   const tbody  = document.getElementById('admin-table-body');
@@ -359,12 +375,11 @@ function renderAdminTable() {
       <td class="td-file" title="${escHtml(d.fileName)}">${escHtml(d.fileName)}</td>
       <td class="td-date">${fmtDate(d.date)}</td>
       <td>
-        <button class="btn btn-danger" data-id="${escHtml(d.id)}">Supprimer</button>
+        <button class="btn btn-danger" data-id="${escHtml(d.id)}">Löschen</button>
       </td>`;
     tbody.appendChild(tr);
   });
 
-  // Délégation des suppressions
   tbody.querySelectorAll('.btn-danger').forEach(btn => {
     btn.addEventListener('click', () => handleDelete(btn.dataset.id));
   });
@@ -373,7 +388,7 @@ function renderAdminTable() {
 function handleDelete(id) {
   deleteDossier(id);
   const msgEl = document.getElementById('msg-delete');
-  showMsg(msgEl, `✓ Dossier <strong>${escHtml(id)}</strong> supprimé avec succès.`, 'success');
+  showMsg(msgEl, `✓ Akte <strong>${escHtml(id)}</strong> erfolgreich gelöscht.`, 'success');
   renderAdminTable();
   setTimeout(() => hideMsg(msgEl), 4000);
 }
